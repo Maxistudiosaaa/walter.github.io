@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revisión de Código Interactiva: Controlador de Zonas de Ambiente</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony -->
+    <!-- Application Structure Plan: The application uses a single-column, thematic layout. It begins with a header, followed by a section showcasing the script's strengths using visually distinct cards with icons for quick scanning. The main interactive component is a tabbed interface for the "Suggestions for Improvement." A new AI-powered section has been added to generate further refactoring suggestions using the Gemini API, enhancing the tool's analytical capabilities. -->
+    <!-- Visualization & Content Choices: Report Info: Strengths -> Goal: Inform -> Presentation: Grid of cards with icons (HTML/Tailwind) -> Interaction: Hover effect -> Justification: Improves scannability. Report Info: Improvement Suggestions -> Goal: Organize/Explain -> Presentation: Interactive tabs (HTML/JS) -> Interaction: Click to reveal content -> Justification: Breaks down complex info. Report Info: Code Snippets -> Goal: Illustrate -> Presentation: Styled code blocks -> Interaction: Copy-to-clipboard. Report Info: AI Analysis -> Goal: Extend/Analyze -> Presentation: Button-triggered content area -> Interaction: Click to call Gemini API and display results -> Justification: Provides dynamic, advanced feedback. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f7f4;
+            color: #333;
+        }
+        .active-tab {
+            background-color: #4a5568;
+            color: #ffffff;
+            border-color: #4a5568;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .code-block {
+            background-color: #2d3748;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            position: relative;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background-color: #4a5568;
+            color: #e2e8f0;
+            border: none;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background-color 0.2s;
+        }
+        .copy-btn:hover {
+            background-color: #718096;
+        }
+        .code-keyword { color: #90cdf4; }
+        .code-comment { color: #9ae6b4; }
+        .code-string { color: #faf089; }
+        .code-function { color: #f6ad55; }
+        .code-variable { color: #cbd5e0; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="container mx-auto p-4 sm:p-6 md:p-8 max-w-4xl">
+
+        <header class="text-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">Controlador de Zonas de Ambiente</h1>
+            <p class="text-lg text-gray-600">Una Revisión de Código Interactiva</p>
+        </header>
+
+        <main>
+            <section id="strengths" class="mb-12">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-6 text-center">Puntos Fuertes Clave</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+                        <div class="flex items-center mb-3">
+                            <span class="text-2xl mr-4">✅</span>
+                            <h3 class="font-semibold text-gray-800">Gestión Eficiente de Sonido</h3>
+                        </div>
+                        <p class="text-gray-600 text-sm">Usa un único objeto de sonido maestro, lo cual es muy eficiente en comparación con crear y destruir instancias.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+                        <div class="flex items-center mb-3">
+                            <span class="text-2xl mr-4">✨</span>
+                            <h3 class="font-semibold text-gray-800">Transiciones Suaves</h3>
+                        </div>
+                        <p class="text-gray-600 text-sm">Emplea TweenService para el fundido de volumen y FOV, creando una experiencia de usuario pulida y profesional.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+                        <div class="flex items-center mb-3">
+                            <span class="text-2xl mr-4">🎧</span>
+                            <h3 class="font-semibold text-gray-800">Audio sin Interrupciones</h3>
+                        </div>
+                        <p class="text-gray-600 text-sm">Guarda y reanuda inteligentemente la posición de reproducción del sonido al reingresar a las zonas.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+                        <div class="flex items-center mb-3">
+                            <span class="text-2xl mr-4">🧠</span>
+                            <h3 class="font-semibold text-gray-800">Manejo Inteligente de Zonas</h3>
+                        </div>
+                        <p class="text-gray-600 text-sm">Maneja correctamente el movimiento entre zonas que comparten el mismo sonido, evitando reinicios innecesarios.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+                        <div class="flex items-center mb-3">
+                            <span class="text-2xl mr-4">💪</span>
+                            <h3 class="font-semibold text-gray-800">Robustez</h3>
+                        </div>
+                        <p class="text-gray-600 text-sm">Resistente a los respawns del jugador al revalidar las partes del personaje en cada fotograma.</p>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="ai-analysis" class="mb-12">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-6 text-center">Análisis con IA ✨</h2>
+                <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 text-center">
+                    <p class="text-gray-700 mb-4">Usa la IA de Gemini para obtener sugerencias adicionales sobre cómo refactorizar y mejorar el script original.</p>
+                    <button id="generate-btn" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors duration-300">
+                        Generar Sugerencias de Refactorización
+                    </button>
+                    <div id="loader" class="mt-4" style="display: none;">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+                        <p class="text-gray-600 mt-2">Analizando el código...</p>
+                    </div>
+                    <div id="ai-response" class="mt-6 text-left p-4 bg-gray-50 rounded-lg border border-gray-200" style="display: none; white-space: pre-wrap;">
+                    </div>
+                </div>
+            </section>
+
+            <section id="suggestions">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-2 text-center">Sugerencias de Mejora</h2>
+                <p class="text-center text-gray-600 mb-6">Aunque el script es sólido, la revisión ofreció sugerencias clave para mejorar su flexibilidad y mantenibilidad. Haz clic en cada sugerencia para saber más.</p>
+                
+                <div id="tabs-container" class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                    <div class="flex flex-wrap justify-center border-b border-gray-200 mb-4">
+                        <button data-tab="tab1" class="tab-btn py-2 px-4 font-medium text-gray-600 border-b-2 border-transparent hover:border-gray-400 hover:text-gray-800 transition-colors duration-200 active-tab">Usar Atributos</button>
+                        <button data-tab="tab2" class="tab-btn py-2 px-4 font-medium text-gray-600 border-b-2 border-transparent hover:border-gray-400 hover:text-gray-800 transition-colors duration-200">Desacoplar Sistemas</button>
+                        <button data-tab="tab3" class="tab-btn py-2 px-4 font-medium text-gray-600 border-b-2 border-transparent hover:border-gray-400 hover:text-gray-800 transition-colors duration-200">Refinamientos de Código</button>
+                    </div>
+
+                    <div id="tab1" class="tab-content active">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-3">1. Usar Atributos para Configuraciones de Zona</h3>
+                        <p class="text-gray-700 mb-4">En lugar de valores fijos como `ZONE_FOV`, usa Atributos en las partes de la zona. Esto permite la configuración directa en el editor sin modificar el script, haciendo el sistema mucho más flexible. Podrías establecer un atributo `CameraFOV` o `TargetVolume` en cada parte.</p>
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+                            <code><span class="code-comment">-- Dentro de la función handleFOV o al detectar una nueva zona</span>
+<span class="code-keyword">local</span> <span class="code-variable">newFov</span> = <span class="code-variable">newZone</span> <span class="code-keyword">and</span> <span class="code-variable">newZone</span>:<span class="code-function">GetAttribute</span>(<span class="code-string">"CameraFOV"</span>)
+
+<span class="code-keyword">if</span> <span class="code-variable">newFov</span> <span class="code-keyword">then</span>
+    <span class="code-comment">-- Usar el valor FOV del atributo de la parte</span>
+    <span class="code-variable">CameraEffects</span>.<span class="code-function">setFOV</span>(<span class="code-variable">newFov</span>, <span class="code-variable">FOV_FADE_DURATION</span>) 
+<span class="code-keyword">else</span>
+    <span class="code-comment">-- Volver al valor por defecto si no se encuentra el atributo</span>
+    <span class="code-variable">CameraEffects</span>.<span class="code-function">resetFOV</span>(<span class="code-variable">FOV_FADE_DURATION</span>) 
+<span class="code-keyword">end</span></code>
+                        </div>
+                    </div>
+                    <div id="tab2" class="tab-content">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-3">2. Desacoplar los Sistemas de Cámara y Sonido</h3>
+                        <p class="text-gray-700 mb-4">Para una mejor organización y mantenibilidad, separa la lógica de sonido y cámara en scripts independientes. Un script central "ZoneService" podría detectar la zona actual del jugador y disparar un `BindableEvent`. Otros scripts controladores (para sonido, cámara, iluminación, etc.) pueden escuchar este evento y reaccionar en consecuencia. Esta "separación de responsabilidades" facilita la depuración y extensión del código.</p>
+                    </div>
+                    <div id="tab3" class="tab-content">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-3">3. Refinamientos Menores de Código</h3>
+                        <p class="text-gray-700 mb-4">Dos pequeños refinamientos pueden mejorar la claridad. Primero, renombra variables como `touchingZones` a `overlappingZones` para reflejar con mayor precisión que solo estás usando el primer elemento. Segundo, es una buena práctica almacenar la conexión de `RunService.Heartbeat` en una variable para que pueda ser desconectada si el script se destruye, previniendo posibles fugas de memoria.</p>
+                         <div class="code-block">
+                            <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+                            <code><span class="code-keyword">local</span> <span class="code-variable">overlappingZones</span> = <span class="code-variable">Workspace</span>:<span class="code-function">GetPartsInPart</span>(<span class="code-variable">humanoidRootPart</span>, <span class="code-variable">overlapParams</span>)
+<span class="code-keyword">local</span> <span class="code-variable">newActiveZone</span> = <span class="code-variable">overlappingZones</span>[<span class="code-number">1</span>] <span class="code-comment">-- La primera parte encontrada es la de mayor prioridad</span></code>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="text-center mt-12 pt-6 border-t border-gray-200">
+            <p class="text-sm text-gray-500">Este informe interactivo fue generado para proporcionar una visión dinámica del análisis del script.</p>
+        </footer>
+    </div>
+
+    <script>
+        const tabsContainer = document.getElementById('tabs-container');
+        const tabButtons = tabsContainer.querySelectorAll('.tab-btn');
+        const tabContents = tabsContainer.querySelectorAll('.tab-content');
+
+        tabsContainer.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('tab-btn')) return;
+
+            const tabId = e.target.getAttribute('data-tab');
+            
+            tabButtons.forEach(btn => {
+                btn.classList.remove('active-tab');
+                if (btn.getAttribute('data-tab') === tabId) {
+                    btn.classList.add('active-tab');
+                }
+            });
+
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+                if (content.id === tabId) {
+                    content.classList.add('active');
+                }
+            });
+        });
+        
+        function copyCode(button) {
+            const codeBlock = button.nextElementSibling;
+            const text = codeBlock.innerText;
+
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                button.innerText = 'Copiado!';
+                setTimeout(() => {
+                    button.innerText = 'Copiar';
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        const generateBtn = document.getElementById('generate-btn');
+        const loader = document.getElementById('loader');
+        const aiResponseContainer = document.getElementById('ai-response');
+
+        const originalLuaScript = `
+-- ================== CONFIGURACIÓN ==================
+-- Configuración de Sonido
+local FADE_DURATION = 1.0  -- Duración del fundido de sonido
+local TARGET_VOLUME = 0.6  -- Volumen máximo del sonido
+
+-- Configuración de Cámara
+local USE_FOV_EFFECT = true
+local ZONE_FOV = 86
+local FOV_FADE_DURATION = 1.75
+-- =================================================
+
+-- Servicios
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local CollectionService = game:GetService("CollectionService")
+
+local CameraEffects = require(script.CameraEffects)
+
+local localPlayer = Players.LocalPlayer
+local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+local soundPartsFolder = Workspace:WaitForChild("soundParts")
+
+local masterSound = Instance.new("Sound")
+masterSound.Name = "MasterAmbientSound"
+masterSound.Looped = true
+masterSound.Volume = 0
+masterSound.Parent = script
+
+local currentActiveZone, activeTween = nil, nil
+local isTransitioning = false
+local soundPlaybackPositions = {}
+
+local overlapParams = OverlapParams.new()
+overlapParams.FilterType = Enum.RaycastFilterType.Include
+overlapParams.FilterDescendantsInstances = {soundPartsFolder}
+
+local function onTweenCompleted()
+	isTransitioning = false
+	activeTween = nil
+end
+
+local function fadeIn()
+	if activeTween then activeTween:Cancel() end
+	masterSound:Play()
+	activeTween = TweenService:Create(masterSound, TweenInfo.new(FADE_DURATION, Enum.EasingStyle.Linear), {Volume = TARGET_VOLUME})
+	activeTween.Completed:Once(onTweenCompleted)
+	activeTween:Play()
+end
+
+local function fadeOut(onCompleteCallback)
+	if activeTween then activeTween:Cancel() end
+	activeTween = TweenService:Create(masterSound, TweenInfo.new(FADE_DURATION, Enum.EasingStyle.Linear), {Volume = 0})
+	activeTween.Completed:Once(function()
+		if masterSound.Volume == 0 then masterSound:Pause() end
+		activeTween = nil
+		if onCompleteCallback then onCompleteCallback() else isTransitioning = false end
+	end)
+	activeTween:Play()
+end
+
+local function handleFOV(oldZone, newZone)
+	if not USE_FOV_EFFECT then return end
+	local oldTag = oldZone and CollectionService:HasTag(oldZone, "camera")
+	local newTag = newZone and CollectionService:HasTag(newZone, "camera")
+	if newTag and not oldTag then
+		CameraEffects.setFOV(ZONE_FOV, FOV_FADE_DURATION)
+	elseif not newTag and oldTag then
+		CameraEffects.resetFOV(FOV_FADE_DURATION)
+	end
+end
+
+local function onHeartbeat()
+	if not humanoidRootPart or not humanoidRootPart.Parent then
+		character = localPlayer.Character
+		if not character then return end
+		humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+		return
+	end
+	if isTransitioning then return end
+
+	local touchingZones = Workspace:GetPartsInPart(humanoidRootPart, overlapParams)
+	local newActiveZone = touchingZones[1]
+	if newActiveZone == currentActiveZone then return end
+
+	local oldSourceSound = currentActiveZone and currentActiveZone:FindFirstChildOfClass("Sound")
+	local newSourceSound = newActiveZone and newActiveZone:FindFirstChildOfClass("Sound")
+	local oldSoundId = oldSourceSound and oldSourceSound.SoundId or ""
+	local newSoundId = newSourceSound and newSourceSound.SoundId or ""
+
+	if newSoundId ~= "" and newSoundId == oldSoundId then
+		handleFOV(currentActiveZone, newActiveZone)
+		currentActiveZone = newActiveZone
+		return
+	end
+
+	if currentActiveZone and masterSound.IsPlaying and oldSoundId ~= "" then
+		soundPlaybackPositions[oldSoundId] = masterSound.TimePosition
+	end
+
+	handleFOV(currentActiveZone, newActiveZone)
+	isTransitioning = true
+	currentActiveZone = newActiveZone
+
+	local function playNewSound()
+		if newSoundId ~= "" then
+			masterSound.SoundId = newSoundId
+			masterSound.TimePosition = soundPlaybackPositions[newSoundId] or 0
+			fadeIn()
+		else
+			masterSound.SoundId = ""
+			isTransitioning = false
+		end
+	end
+
+	if masterSound.IsPlaying then fadeOut(playNewSound) else playNewSound() end
+end
+
+RunService.Heartbeat:Connect(onHeartbeat)
+        `;
+
+        const prompt = "Act as an expert Roblox scripter. Analyze the following Lua script for an ambient zone controller. Provide 3 concrete refactoring suggestions that would improve its structure, maintainability, or performance. For each suggestion, provide a brief 'before' and 'after' code snippet and explain the benefits of the change."
+            + "\n\nThe script is:\n"
+            + "```lua\n"
+            + originalLuaScript
+            + "\n```";
+
+        async function callGeminiApi() {
+            loader.style.display = 'block';
+            aiResponseContainer.style.display = 'none';
+            aiResponseContainer.textContent = '';
+            generateBtn.disabled = true;
+
+            let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+            const payload = { contents: chatHistory };
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            
+            let attempts = 0;
+            const maxAttempts = 5;
+            let delay = 1000;
+
+            while (attempts < maxAttempts) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        aiResponseContainer.textContent = text;
+                        aiResponseContainer.style.display = 'block';
+                    } else {
+                         aiResponseContainer.textContent = 'No se pudo obtener una respuesta válida de la IA. La respuesta podría estar vacía o tener un formato inesperado.';
+                         aiResponseContainer.style.display = 'block';
+                    }
+                    break; 
+                } catch (error) {
+                    attempts++;
+                    if (attempts >= maxAttempts) {
+                        aiResponseContainer.textContent = 'Error al contactar la API de IA después de varios intentos. Por favor, inténtalo de nuevo más tarde.';
+                        aiResponseContainer.style.display = 'block';
+                    } else {
+                        await new Promise(res => setTimeout(res, delay));
+                        delay *= 2;
+                    }
+                } finally {
+                    loader.style.display = 'none';
+                    generateBtn.disabled = false;
+                }
+            }
+        }
+
+        generateBtn.addEventListener('click', callGeminiApi);
+
+    </script>
+</body>
+</html>
